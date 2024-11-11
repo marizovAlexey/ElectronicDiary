@@ -63,6 +63,9 @@ public class Student
     [Required]
     public DateTime BirthDate { get; set; }
 
+     public int? UserId {  get; set; }
+     public User? User { get; set; }
+
     /// <summary>
     /// Список оценок у студента
     /// </summary>
@@ -70,14 +73,14 @@ public class Student
 
     public Student() { }
 
-    public Student(int id,string firstName, string lastName, string patronymic, string passport, Class @class, DateTime birthDate, List<Grade>? grades)
+    public Student(int id,string firstName, string lastName, string patronymic, string passport, int @class, DateTime birthDate, List<Grade>? grades)
     {
         Id = id;
         FirstName = firstName;
         LastName = lastName;
         Patronymic = patronymic;
         Passport = passport;
-        Class = @class;
+        ClassId = @class;
         BirthDate = birthDate;
         Grades = grades;
     }
@@ -92,6 +95,6 @@ public class Student
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Id, FirstName, LastName, Patronymic, Passport, Class, BirthDate);
+        return HashCode.Combine(Id, FirstName, LastName, Patronymic, Passport, ClassId, BirthDate);
     }
 }
