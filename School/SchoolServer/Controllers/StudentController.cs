@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using School.Classes;
 using SchoolServer.Dto;
 using Microsoft.EntityFrameworkCore;
+using SchoolServer.Services;
+using System.Security.Claims;
 
 namespace SchoolServer.Controllers;
 
@@ -13,8 +15,8 @@ namespace SchoolServer.Controllers;
 [ApiController]
 public class StudentController : ControllerBase
 {
-    private readonly SchoolDbContext _context;
-
+    private readonly ApplicationContext _context;
+    private readonly IRoleCookieValidator _roleCookieValidator;
     private readonly IMapper _mapper;
 
     /// <summary>
@@ -22,35 +24,33 @@ public class StudentController : ControllerBase
     /// </summary>
     /// <param name="context"></param>
     /// <param name="mapper"></param>
-    public StudentController(SchoolDbContext context, IMapper mapper)
+    public StudentController(ApplicationContext context, IMapper mapper, IRoleCookieValidator roleCookieValidator)
     {
         _context = context;
         _mapper = mapper;
+        _roleCookieValidator = roleCookieValidator;
     }
 
-    /// <summary>
+       /// <summary>
     /// Получение всех студентов
     /// </summary>
     /// <returns>Список всех студентов</returns>
     [HttpGet(Name = "GetStudents")]
     public async Task<ActionResult<IEnumerable<StudentGetDto>>> GetStudents()
     {
-        if (_context.Students == null)
+        var permission = await _roleCookieValidator.CheckPermissions(HttpContext);
+        if (!permission)
         {
             return NotFound();
         }
         return await _mapper.ProjectTo<StudentGetDto>(_context.Students).ToListAsync();
     }
 
-    /// <summary>
-    /// Получение студента по id
-    /// </summary>
-    /// <param name="id">Идентификатор студента</param>
-    /// <returns>Студент</returns>
-    [HttpGet("{id}", Name = "GetStudent")]
-    public async Task<ActionResult<StudentGetDto>> GetStudent(int id)
+    [HttpPost("GetGrades")]
+    public async Task<ActionResult<List<GradeGetDto>?>> GetGradesByStudentId([FromBody] int id)
     {
-        if (_context.Students == null)
+        var permission = await _roleCookieValidator.CheckPermissions(HttpContext);
+        if (!permission)
         {
             return NotFound();
         }
@@ -61,7 +61,55 @@ public class StudentController : ControllerBase
             return NotFound();
         }
 
-        return _mapper.Map<StudentGetDto>(student);
+        var grades = _context.Grades.Where(x => x.StudentId == id);
+        var listGrades = await _mapper.ProjectTo<GradeGetDto>(grades).ToListAsync();
+
+        return Ok(listGrades);
+    }
+
+    [HttpGet("GetUserID")]
+    public async Task<ActionResult<int?>> GetUserID()
+    {
+        var userLogin = HttpContext.User.FindFirst(ClaimsIdentity.DefaultNameClaimType)?.Value;
+        if (string.IsNullOrEmpty(userLogin))
+        {
+            return NotFound();
+        }
+        
+        var user = await _context.Users.SingleOrDefaultAsync(x => x.Login == userLogin);
+        return Ok(user?.Id);
+    }
+
+
+    [HttpPost("GetStudentByUserID")]
+    public async Task<ActionResult<ReaderStudent>> GetStudentByUserID([FromBody] int userId)
+    {
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
+        {
+            return NotFound();
+        }
+        var student = await _context.Students.SingleOrDefaultAsync(x => x.UserId == userId);
+        var studentMap = _mapper.Map<StudentGetDto>(student);
+
+        if (student == null)
+        {
+            return NotFound();
+        }
+
+        var grades = _context.Grades.Where(x => x.StudentId == studentMap.Id);
+        var listGrades = await _mapper.ProjectTo<GradeGetDto>(grades).ToListAsync();
+
+        var @class = await _context.Classes.FindAsync(student.ClassId);
+
+        var studentInfo = new ReaderStudent()
+        {
+            Student = studentMap,
+            Grades = listGrades,
+            Class = _mapper.Map<ClassGetDto>(@class)
+        };
+
+        return Ok(studentInfo);
     }
 
     /// <summary>

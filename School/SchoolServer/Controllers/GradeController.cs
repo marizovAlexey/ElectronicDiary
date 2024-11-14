@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using School.Classes;
 using SchoolServer.Dto;
+using SchoolServer.Services;
 
 namespace SchoolServer.Controllers;
 
@@ -13,7 +14,8 @@ namespace SchoolServer.Controllers;
 [ApiController]
 public class GradeController : ControllerBase
 {
-    private readonly SchoolDbContext _context;
+    private readonly ApplicationContext _context;
+    private readonly IRoleCookieValidator _roleCookieValidator;
 
     private readonly IMapper _mapper;
 
@@ -22,18 +24,19 @@ public class GradeController : ControllerBase
     /// </summary>
     /// <param name="context"></param>
     /// <param name="mapper"></param>
-    public GradeController(SchoolDbContext context, IMapper mapper)
+    public GradeController(ApplicationContext context, IMapper mapper, IRoleCookieValidator roleCookieValidator)
     {
         _context = context;
         _mapper = mapper;
+        _roleCookieValidator = roleCookieValidator;
     }
 
     /// <summary>
     /// Получение всех оценок
     /// </summary>
     /// <returns>Список всех оценок</returns>
-    [HttpGet(Name = "GetGrades")]
-    public async Task<ActionResult<IEnumerable<GradeGetDto>>> GetGrades()
+    [HttpGet(Name = "GetAllGrades")]
+    public async Task<ActionResult<IEnumerable<GradeGetDto>>> GetAllGrades()
     {
         if (_context.Grades == null)
         {
@@ -99,16 +102,28 @@ public class GradeController : ControllerBase
     [HttpPost(Name = "PostGrade")]
     public async Task<ActionResult<int>> PostGrade(GradePostDto grade)
     {
-        if (_context.Grades == null)
+        var permission = await _roleCookieValidator.CheckPermissions(HttpContext);
+        if (!permission)
         {
-            return Problem("Entity set 'DiaryDomainDbContext.Grades'  is null.");
+            return NotFound();
         }
-        var mappedGrade = _mapper.Map<Grade>(grade);
 
-        _context.Grades.Add(mappedGrade);
+        if (grade.Id != null)
+        {
+            var gradeBase = await _context.Grades.SingleOrDefaultAsync(x => x.Id == grade.Id);
+            gradeBase!.Mark = grade.Mark;
+            
+            _context.Grades.Update(gradeBase);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        var newGrade = _mapper.Map<Grade>(grade);
+        newGrade.Date = DateTime.UtcNow;
+        _context.Grades.Add(newGrade);
         await _context.SaveChangesAsync();
 
-        return Ok(mappedGrade.Id);
+        return Ok();
     }
 
     /// <summary>

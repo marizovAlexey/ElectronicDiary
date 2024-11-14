@@ -13,7 +13,7 @@ namespace SchoolServer.Controllers;
 [ApiController]
 public class RequestsController : ControllerBase
 {
-    private readonly SchoolDbContext _context;
+    private readonly ApplicationContext _context;
 
     private readonly IMapper _mapper;
 
@@ -22,7 +22,7 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="context"></param>
     /// <param name="mapper"></param>
-    public RequestsController(SchoolDbContext context, IMapper mapper)
+    public RequestsController(ApplicationContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;

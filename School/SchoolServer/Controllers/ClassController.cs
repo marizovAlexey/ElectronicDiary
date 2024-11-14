@@ -3,6 +3,7 @@ using SchoolServer.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using School.Classes;
+using SchoolServer.Services;
 
 namespace SchoolServer.Controllers;
 
@@ -13,7 +14,8 @@ namespace SchoolServer.Controllers;
 [ApiController]
 public class ClassController : ControllerBase
 {
-    private readonly SchoolDbContext _context;
+    private readonly ApplicationContext _context;
+    private readonly IRoleCookieValidator _roleCookieValidator;
 
     private readonly IMapper _mapper;
 
@@ -22,10 +24,11 @@ public class ClassController : ControllerBase
     /// </summary>
     /// <param name="context"></param>
     /// <param name="mapper"></param>
-    public ClassController(SchoolDbContext context, IMapper mapper)
+   public ClassController(ApplicationContext context, IMapper mapper, IRoleCookieValidator roleCookieValidator)
     {
         _context = context;
         _mapper = mapper;
+        _roleCookieValidator = roleCookieValidator;
     }
 
     /// <summary>
@@ -35,22 +38,22 @@ public class ClassController : ControllerBase
     [HttpGet(Name = "GetClasses")]
     public async Task<ActionResult<IEnumerable<ClassGetDto>>> GetClasses()
     {
-        if (_context.Classes == null)
+        if (await _roleCookieValidator.CheckPermissions(HttpContext))
         {
-            return NotFound();
+            return await _mapper.ProjectTo<ClassGetDto>(_context.Classes).ToListAsync();
         }
-        return await _mapper.ProjectTo<ClassGetDto>(_context.Classes).ToListAsync();
+        return NotFound();
     }
 
     /// <summary>
     /// Получение класса по id
     /// </summary>
-    /// <param name="id">Идентификатор класса</param>
-    /// <returns>Класс</returns>
-    [HttpGet("{id}", Name = "GetClass")]
-    public async Task<ActionResult<ClassGetDto>> GetClass(int id)
+   /// <returns>Класс</returns>
+    [HttpPost("GetClassStudents")]
+    public async Task<ActionResult<List<StudentGetDto>>> GetClass([FromBody] int id)
     {
-        if (_context.Classes == null)
+        var permission = await _roleCookieValidator.CheckPermissions(HttpContext);
+        if (!permission)
         {
             return NotFound();
         }
@@ -61,7 +64,10 @@ public class ClassController : ControllerBase
             return NotFound();
         }
 
-        return _mapper.Map<ClassGetDto>(@class);
+        var students = _context.Students.Where(x => x.ClassId == id);
+        var getStudents = await _mapper.ProjectTo<StudentGetDto>(students).ToListAsync();
+
+        return Ok(getStudents);
     }
     /// <summary>
     /// Изменение данных о классе
@@ -100,7 +106,7 @@ public class ClassController : ControllerBase
     {
         if (_context.Classes == null)
         {
-            return Problem("Entity set 'SchoolDbContext.Class'  is null.");
+            return Problem("Entity set 'ApplicationContext.Class'  is null.");
         }
         var mappedClass = _mapper.Map<Class>(@class);
 
@@ -134,4 +140,5 @@ public class ClassController : ControllerBase
         return Ok();
     }
 }
+
 
