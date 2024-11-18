@@ -3,14 +3,18 @@ using SchoolServer;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using School.Classes;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using SchoolServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration["DbConnection"];
 
-builder.Services.AddDbContext<SchoolDbContext>(options =>
-{
-    options.UseMySQL(builder.Configuration.GetConnectionString("School")!);
-});
+School.Classes.DbConnection.ConnectionString = connectionString;
+
+builder.Services.AddDbContext<ApplicationContext>((sp, options) =>
+    options.UseNpgsql(connectionString)
+);
 
 var mapperConfig = new MapperConfiguration(config => config.AddProfile(new MappingProfile()));
 var mapper = mapperConfig.CreateMapper();
@@ -25,7 +29,27 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFileName));
 });
 
+builder.Services.AddAuthentication(option =>
+{
+    option.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    option.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    option.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+}).AddCookie();
+
+builder.Services.AddScoped<IRoleCookieValidator, RoleCookieValidator>();
+
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/")
+    {
+        context.Response.Redirect("/login.html");
+        return;
+    }
+
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -35,8 +59,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.UseStaticFiles();
 app.Run();

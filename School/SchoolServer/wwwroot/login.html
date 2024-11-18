@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="pico/css/pico.min.css">
+</head>
+<body style="padding: 5%;">
+    <div class="container">
+        <h1>Электронный дневник</h1>
+        <form id="loginForm" method="post">
+            <input id="usernameField" type="text" required placeholder="Имя пользователя" pattern="^\S{3,30}$"/>
+            <input id="passwordField" type="password" required placeholder="Пароль"/>
+            <input id="submitButton" type="submit" value="Войти"/>
+        </form>
+    </div>
+    
+    <script src="script/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View class</title>
+    <link rel="stylesheet" href="pico/css/pico.min.css">
+</head>
+<body style="padding: 20px;">
+    <div style="display: flex; flex-direction: row; align-items: center;">
+        <h2 style="width: fit-content;">Класс: </h2><h2 id="classTitle" style="width: fit-content;"></h2>
+    </div>
+    <div id="gradesTable" class="container grid"></div>
+    <form id="gradeEditor" class="container">
+        <select name="selectStudent" id="selectorStudent">
+            <option selected disabled value="">Ученик</option>
+        </select>
+        <select name="selectSubject" id="selectorSubject">
+            <option selected disabled value="">Предмет</option>
+        </select>
+        <select name="selectGrade" id="selectorGrade">
+            <option selected disabled value="">Оценка</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <input type="submit" value="Подтвердить">
+    </form>
+    <script src="script/viewclass.js"></script>
+</body>
+</html>

@@ -5,6 +5,8 @@
 /// </summary>
 public class GradePostDto
 {
+    public int? Id { get; set; }
+    
     /// <summary>
     /// id Предмета
     /// </summary>
