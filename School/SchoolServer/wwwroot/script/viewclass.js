@@ -1,5 +1,5 @@
 async function fetchSubjects() {
-    const url = "http://localhost:5127/api/Subject"
+    const url = `${urlApplicate}/api/Subject`
     const response = await fetch(
         url,
         {
@@ -11,7 +11,7 @@ async function fetchSubjects() {
 }
 
 async function fetchStudentsByClass(classId) {
-    const url = "http://localhost:5127/api/Class/GetClassStudents"
+    const url = `${urlApplicate}/api/Class/GetClassStudents`
     const response = await fetch(
         url,
         {
@@ -25,7 +25,7 @@ async function fetchStudentsByClass(classId) {
 }
 
 async function fetchGradesByStudent(studentId) {
-    const url = "http://localhost:5127/api/Student/GetGrades"
+    const url = `${urlApplicate}/api/Student/GetGrades`
     const response = await fetch(
         url,
         {
@@ -47,7 +47,7 @@ async function createCell(content) {
 }
 
 async function handleSubmit(gradeId, studentId, subjectId, grade) {
-    const url = "http://localhost:5127/api/Grade"
+    const url = `${urlApplicate}/api/Grade`
     const data = {
         id: gradeId,
         subjectId: subjectId,

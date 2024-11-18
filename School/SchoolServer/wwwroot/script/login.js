@@ -1,16 +1,16 @@
+var urlApplicate = "https://localhost:44385"
+
 async function handleLogin(event) {
     event.preventDefault()
-    console.log("fucking slaves!")
     document.getElementById("submitButton").ariaBusy = true
-    const url = "http://localhost:5127/api/Account";
-    const roleUrl = "http://localhost:5127/api/account/role";
+    const url = `${urlApplicate}/api/Account`;
+    const roleUrl = `${urlApplicate}/api/account/role`;
     let usernameField = document.getElementById("usernameField")
     let passwordField = document.getElementById("passwordField")
     let data = {
         login: usernameField.value,
         password: passwordField.value
     }
-    console.log(data)
 
     try {
         const response = await fetch(
@@ -33,13 +33,17 @@ async function handleLogin(event) {
         )
         const roleId = await roleResponse.json();
 
-        console.log(roleId.role);
+        if (!roleId.role) {
+            alert(JSON.stringify(json));
+            document.getElementById("submitButton").ariaBusy = false;
+            return;
+        }
 
         if (roleId.role != 2) {
-            window.location.href = "http://localhost:5127/classes.html";
+            window.location.href = `${urlApplicate}/classes.html`;
         }
         else {
-            window.location.href = "http://localhost:5127/student.html";
+            window.location.href = `${urlApplicate}/student.html`;
         }
         
     } catch (error) {

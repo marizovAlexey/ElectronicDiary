@@ -10,6 +10,7 @@ namespace SchoolServer.Controllers;
 public class AccountController : ControllerBase
 {
     private ApplicationContext _context;
+    private readonly ILogger<AccountController> _logger;
     public AccountController(ApplicationContext context)
     {
         _context = context;
@@ -19,8 +20,17 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Login(LoginModel model)
     {
         var user = _context.Users.SingleOrDefault(x => x.Login == model.Login);
-        if (user == null || model.Password != user.Password)
-            return Unauthorized(new { message = "Invalid login or password" });
+        if (user == null)
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return NotFound();
+        }
+        if (model.Password != user.Password)
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            _logger.LogWarning($"Пользователь {user.Login} ввел неверный пароль.");
+            return Unauthorized();
+        }
 
         await Authenticate(user);
         return Ok(new { message = "Authentication successful" });

@@ -5,8 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using School.Classes;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SchoolServer.Services;
+using Serilog;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog.Core;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 var connectionString = builder.Configuration["DbConnection"];
 
@@ -19,6 +27,17 @@ builder.Services.AddDbContext<ApplicationContext>((sp, options) =>
 var mapperConfig = new MapperConfiguration(config => config.AddProfile(new MappingProfile()));
 var mapper = mapperConfig.CreateMapper();
 
+
+
+var logger = new LoggerConfiguration()
+    .MinimumLevel.Warning()
+    .WriteTo.File("logfile.txt")
+.CreateLogger();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
+
+
 builder.Services.AddSingleton(mapper);
 
 builder.Services.AddControllers();
@@ -28,6 +47,7 @@ builder.Services.AddSwaggerGen(options =>
     var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFileName));
 });
+
 
 builder.Services.AddAuthentication(option =>
 {
@@ -56,6 +76,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 
 app.UseHttpsRedirection();
 

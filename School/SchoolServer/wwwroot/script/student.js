@@ -1,14 +1,14 @@
 ﻿async function createItem(params) {
     let elem = document.createElement("a")
     elem.role = "button"
-    elem.href = `http://localhost:5127/viewclass.html?id=${params.id}&number=${params.number}&letter=${params.letter}`
+    elem.href = `${urlApplicate}/viewclass.html?id=${params.id}&number=${params.number}&letter=${params.letter}`
     elem.style.textDecoration = "none"
     elem.text = params.number + params.letter
     return elem
 }
 
 async function fetchSubjects() {
-    const url = "http://localhost:5127/api/Subject"
+    const url = `${urlApplicate}/api/Subject`
     const response = await fetch(
         url,
         {
@@ -82,7 +82,7 @@ async function displayInfo(info) {
     let url = window.location.href.slice();
     try {
         const response = await fetch(
-            "http://localhost:5127/api/Student/GetUserID",
+            `${urlApplicate}/api/Student/GetUserID`,
             {
                 method: 'GET'
             }
@@ -90,7 +90,7 @@ async function displayInfo(info) {
         const userId = await response.json()
 
         const studentInfo = await fetch(
-            "http://localhost:5127/api/Student/GetStudentByUserID",
+            `${urlApplicate}/api/Student/GetStudentByUserID`,
             {
                 method: 'POST',
                 body: userId,
@@ -98,7 +98,6 @@ async function displayInfo(info) {
             }
         )
         const info = await studentInfo.json();
-        console.log(info);
 
         await displayInfo(info);
 

@@ -78,9 +78,10 @@ public class ClassController : ControllerBase
     [HttpPut("{id}", Name = "PutClass")]
     public async Task<IActionResult> PutClass(int id, ClassPostDto @class)
     {
-        if (_context.Classes == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
 
         var classToModify = await _context.Classes.FindAsync(id);
@@ -104,9 +105,10 @@ public class ClassController : ControllerBase
     [HttpPost(Name = "PostClass")]
     public async Task<ActionResult<int>> PostClass(ClassPostDto @class)
     {
-        if (_context.Classes == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return Problem("Entity set 'ApplicationContext.Class'  is null.");
+            return Unauthorized();
         }
         var mappedClass = _mapper.Map<Class>(@class);
 
@@ -124,9 +126,10 @@ public class ClassController : ControllerBase
     [HttpDelete("{id}", Name = "DeleteClass")]
     public async Task<IActionResult> DeleteClass(int id)
     {
-        if (_context.Classes == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
         var @class = await _context.Classes.FindAsync(id);
         if (@class == null)

@@ -1,4 +1,6 @@
-﻿namespace SchoolServer.Dto;
+﻿using School.Classes;
+
+namespace SchoolServer.Dto;
 
 /// <summary>
 /// Dto для метода Get класса Student  

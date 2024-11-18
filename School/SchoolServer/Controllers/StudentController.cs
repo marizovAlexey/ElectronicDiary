@@ -121,11 +121,11 @@ public class StudentController : ControllerBase
     [HttpPut("{id}", Name = "PutStudent")]
     public async Task<IActionResult> PutStudent(int id, StudentPostDto student)
     {
-        if (_context.Students == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
-
         var studentToModify = await _context.Students.FindAsync(id);
         if (studentToModify == null)
         {
@@ -147,9 +147,10 @@ public class StudentController : ControllerBase
     [HttpPost(Name = "PostStudent")]
     public async Task<ActionResult<int>> PostStudent(StudentPostDto student)
     {
-        if (_context.Students == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return Problem("Entity set 'DiaryDomainDbContext.Students'  is null.");
+            return Unauthorized();
         }
 
         var mappedStudent = _mapper.Map<Student>(student);
@@ -168,10 +169,12 @@ public class StudentController : ControllerBase
     [HttpDelete("{id}", Name = "DeleteStudent")]
     public async Task<IActionResult> DeleteStudent(int id)
     {
-        if (_context.Students == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
+        
         var student = await _context.Students.FindAsync(id);
         if (student == null)
         {

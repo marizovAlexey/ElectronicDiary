@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using School.Classes;
 using SchoolServer.Dto;
+using SchoolServer.Services;
 
 namespace SchoolServer.Controllers;
 
@@ -14,8 +15,8 @@ namespace SchoolServer.Controllers;
 public class SubjectController : ControllerBase
 {
     private readonly ApplicationContext _context;
-
     private readonly IMapper _mapper;
+    private readonly IRoleCookieValidator _roleCookieValidator;
 
     /// <summary>
     /// Конструктор SubjectController
@@ -26,6 +27,7 @@ public class SubjectController : ControllerBase
     {
         _context = context;
         _mapper = mapper;
+        _roleCookieValidator = roleCookieValidator;
     }
 
     /// <summary>
@@ -35,9 +37,10 @@ public class SubjectController : ControllerBase
     [HttpGet(Name = "GetSubjects")]
     public async Task<ActionResult<IEnumerable<SubjectGetDto>>> GetSubjects()
     {
-        if (_context.Subjects == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
         return await _mapper.ProjectTo<SubjectGetDto>(_context.Subjects).ToListAsync();
     }
@@ -50,9 +53,10 @@ public class SubjectController : ControllerBase
     [HttpGet("{id}", Name = "GetSubject")]
     public async Task<ActionResult<SubjectGetDto>> GetSubject(int id)
     {
-        if (_context.Subjects == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
         var subject = await _context.Subjects.FindAsync(id);
 
@@ -73,9 +77,10 @@ public class SubjectController : ControllerBase
     [HttpPut("{id}", Name = "PutSubject")]
     public async Task<IActionResult> PutSubject(int id, SubjectPostDto subject)
     {
-        if (_context.Subjects == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
 
         var subjectToModify = await _context.Subjects.FindAsync(id);
@@ -99,9 +104,10 @@ public class SubjectController : ControllerBase
     [HttpPost(Name = "PostSubject")]
     public async Task<ActionResult<int>> PostSubject(SubjectPostDto subject)
     {
-        if (_context.Subjects == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return Problem("Entity set 'DiaryDomainDbContext.Subjects'  is null.");
+            return Unauthorized();
         }
         var mappedSubject = _mapper.Map<Subject>(subject);
 
@@ -119,9 +125,10 @@ public class SubjectController : ControllerBase
     [HttpDelete("{id}", Name = "DeleteSubject")]
     public async Task<IActionResult> DeleteSubject(int id)
     {
-        if (_context.Subjects == null)
+var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
         var subject = await _context.Subjects.FindAsync(id);
         if (subject == null)

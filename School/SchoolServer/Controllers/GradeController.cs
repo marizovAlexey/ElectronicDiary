@@ -38,6 +38,11 @@ public class GradeController : ControllerBase
     [HttpGet(Name = "GetAllGrades")]
     public async Task<ActionResult<IEnumerable<GradeGetDto>>> GetAllGrades()
     {
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
+        {
+            return Unauthorized();
+        }
         if (_context.Grades == null)
         {
             return NotFound();
@@ -53,10 +58,12 @@ public class GradeController : ControllerBase
     [HttpGet("{id}", Name = "GetGrade")]
     public async Task<ActionResult<GradeGetDto>> GetGrade(int id)
     {
-        if (_context.Grades == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
+        
         var grade = await _context.Grades.FindAsync(id);
 
         if (grade == null)
@@ -76,9 +83,10 @@ public class GradeController : ControllerBase
     [HttpPut("{id}", Name = "PutGrade")]
     public async Task<IActionResult> PutGrade(int id, GradePostDto grade)
     {
-        if (_context.Grades == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
 
         var gradeToModify = await _context.Grades.FindAsync(id);
@@ -134,9 +142,10 @@ public class GradeController : ControllerBase
     [HttpDelete("{id}", Name = "DeleteGrade")]
     public async Task<IActionResult> DeleteGrade(int id)
     {
-        if (_context.Grades == null)
+        var permission = _roleCookieValidator.CheckAuthorization(HttpContext);
+        if (!permission)
         {
-            return NotFound();
+            return Unauthorized();
         }
         var grade = await _context.Grades.FindAsync(id);
         if (grade == null)
